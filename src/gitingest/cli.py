@@ -19,6 +19,7 @@ from gitingest.config import MAX_FILE_SIZE, OUTPUT_FILE_NAME
 from gitingest.entrypoint import ingest_async
 from tqdm import tqdm
 import time
+import os
 
 def create_cli():
     @click.group()
