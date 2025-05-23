@@ -125,6 +125,27 @@ repo_context = extract_repo_context(root_node, MODEL_CONFIGS["gpt-4"])
 - **Smart chunking**: Output split into JSONL files, each respecting model token/file size limits
 - **Progressive extraction**: Real-time progress bar and logs
 
+### 🗝️ Universal Key File Extraction (NEW)
+
+Extract key files (README, controllers, entities, repositories, tests, etc.) from any project (Python, JS, C#, Java, etc.) with a single command:
+
+```bash
+gitingest extract-key-files <source_dir> [--output report.json] [--lines N]
+```
+
+**Examples:**
+```bash
+gitingest extract-key-files .
+gitingest extract-key-files ./my-app --output keyfiles.json --lines 50
+```
+
+- Detects and extracts the most relevant files for LLM context (multi-language, cross-framework)
+- Outputs a structured JSON report (to file or stdout)
+- Robust, fully tested (TDD), and regression-proof
+
+**Why?**
+> This feature helps LLMs and developers quickly get the essence of any repo, regardless of language or structure. Perfect for onboarding, audits, or AI-powered code review.
+
 ---
 
 ## 🐳 Self-host

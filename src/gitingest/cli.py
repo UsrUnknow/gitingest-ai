@@ -316,20 +316,49 @@ def create_cli():
 
     @cli.command()
     @click.argument("source", type=str, default=".")
+    @click.option("--output", "-o", default=None, help="Chemin du fichier de sortie (par défaut: stdout)")
+    @click.option("--lines", "-n", default=40, show_default=True, help="Nombre de lignes à extraire par fichier clé.")
+    def extract_key_files(source, output, lines):
+        """
+        Extrait les fichiers clés d'un projet (README, contrôleur, entité, repository, test, etc.)
+        et affiche un rapport structuré (JSON) universel, quel que soit le langage (Python, JS, C#, Java, etc.).
+
+        Exemples :
+          gitingest extract-key-files ./mon-projet
+          gitingest extract-key-files . --output rapport.json --lines 50
+        """
+        from pathlib import Path
+        import json
+        from gitingest.utils.key_file_detection import find_key_files, generate_extraction_report
+        root_path = Path(source).resolve()
+        if not root_path.exists() or not root_path.is_dir():
+            click.echo(f"Chemin source invalide : {root_path}", err=True)
+            return
+        key_files = find_key_files(root_path)
+        report = generate_extraction_report(key_files, n_lines=lines)
+        if output:
+            with open(output, "w", encoding="utf-8") as f:
+                json.dump(report, f, ensure_ascii=False, indent=2)
+            click.echo(f"Rapport d'extraction écrit dans : {output}")
+        else:
+            click.echo(json.dumps(report, ensure_ascii=False, indent=2))
+
+    @cli.command()
+@click.argument("source", type=str, default=".")
     @click.option("--output", "-o", default=None, help="Chemin du fichier de sortie (par défaut: <repo_name>.txt dans le dossier courant)")
     @click.option("--max-size", "-s", default=MAX_FILE_SIZE, help="Taille maximale d'un fichier à traiter (en octets)")
     @click.option("--exclude-pattern", "-e", multiple=True, help="Patterns à exclure (ex: *.md, tests/*)")
     @click.option("--include-pattern", "-i", multiple=True, help="Patterns à inclure (ex: *.py, src/*)")
     @click.option("--branch", "-b", default=None, help="Branche à cloner et analyser")
-    def main(
-        source: str,
+def main(
+    source: str,
         output: str,
-        max_size: int,
+    max_size: int,
         exclude_pattern,
         include_pattern,
         branch,
-    ):
-        """
+):
+    """
         Point d'entrée principal de la CLI (analyse classique).
 
         SOURCE : chemin du dépôt à analyser (par défaut: .)
@@ -345,29 +374,29 @@ def create_cli():
           --include-pattern  Patterns à inclure (ex: *.py, src/*)
           --branch           Branche à cloner et analyser
         """
-        asyncio.run(_async_main(source, output, max_size, exclude_pattern, include_pattern, branch))
+    asyncio.run(_async_main(source, output, max_size, exclude_pattern, include_pattern, branch))
 
-    async def _async_main(
-        source: str,
+async def _async_main(
+    source: str,
         output: str,
-        max_size: int,
+    max_size: int,
         exclude_pattern,
         include_pattern,
         branch,
-    ) -> None:
+) -> None:
         try:
             from gitingest.config import OUTPUT_FILE_NAME
-            exclude_patterns = set(exclude_pattern)
-            include_patterns = set(include_pattern)
-            if not output:
-                output = OUTPUT_FILE_NAME
-            summary, _, _ = await ingest_async(source, max_size, include_patterns, exclude_patterns, branch, output=output)
-            click.echo(f"Analysis complete! Output written to: {output}")
-            click.echo("\nSummary:")
-            click.echo(summary)
-        except Exception as exc:
-            click.echo(f"Error: {exc}", err=True)
-            raise click.Abort()
+        exclude_patterns = set(exclude_pattern)
+        include_patterns = set(include_pattern)
+        if not output:
+            output = OUTPUT_FILE_NAME
+        summary, _, _ = await ingest_async(source, max_size, include_patterns, exclude_patterns, branch, output=output)
+        click.echo(f"Analysis complete! Output written to: {output}")
+        click.echo("\nSummary:")
+        click.echo(summary)
+    except Exception as exc:
+        click.echo(f"Error: {exc}", err=True)
+        raise click.Abort()
 
     return cli
 
