@@ -95,10 +95,17 @@ def extract_repo_context(
     files.sort(key=lambda f: (priority.get(f.file_type, 99), f.importance.value, -f.size))
 
     def _read_file_content(file):
+        # Exclure les fichiers trop gros
+        if model_config.max_file_size and file.size > model_config.max_file_size:
+            return None, None, f"Fichier trop gros ({file.size} > {model_config.max_file_size})"
         try:
             with open(file.path, 'r', encoding='utf-8', errors='replace') as f:
                 content = f.read()
-            return file, content, None
+            truncated = False
+            if model_config.max_file_size and len(content.encode('utf-8')) > model_config.max_file_size:
+                content = truncate_content(content, model_config.max_file_size)
+                truncated = True
+            return file, content, truncated
         except Exception as e:
             return file, None, str(e)
 
@@ -107,13 +114,23 @@ def extract_repo_context(
     start = time.time()
     with ThreadPoolExecutor(max_workers=8) as executor:
         with tqdm(total=len(files), desc="Lecture des fichiers", miniters=1, mininterval=0, leave=True) as pbar:
-            for file, content, err in executor.map(_read_file_content, files):
-                if err:
-                    tqdm.write(f"[ERREUR] {getattr(file, 'path', file)}: {err}")
-                    errors.append((getattr(file, 'path', file), err))
+            for result in executor.map(_read_file_content, files):
+                file, content, info = result if isinstance(result, tuple) and len(result) == 3 else (None, None, None)
+                if file is None:
+                    # Fichier trop gros ou erreur
+                    if content is None and info:
+                        tqdm.write(f"[IGNORÉ] {info}")
+                        errors.append((None, info))
+                    pbar.update(1)
+                    continue
+                if isinstance(info, str):
+                    tqdm.write(f"[ERREUR] {getattr(file, 'path', file)}: {info}")
+                    errors.append((getattr(file, 'path', file), info))
                 else:
                     file.extra = getattr(file, "extra", {}) or {}
                     file.extra["content"] = content
+                    if info:
+                        file.extra["truncated"] = True
                     results.append(file)
                 pbar.update(1)
     elapsed = time.time() - start
