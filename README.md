@@ -15,161 +15,166 @@ You can also replace `hub` with `ingest` in any GitHub URL to access the corresp
 
 [gitingest.com](https://gitingest.com) · [Chrome Extension](https://chromewebstore.google.com/detail/adfjahbijlkjfoicpjkhjicpjpjfaood) · [Firefox Add-on](https://addons.mozilla.org/firefox/addon/gitingest)
 
-## 🚀 Features
+# ⚡ Gitingest AI (Advanced Fork)
 
-- **Easy code context**: Get a text digest from a Git repository URL or a directory
-- **Smart Formatting**: Optimized output format for LLM prompts
-- **Statistics about**:
-  - File and directory structure
-  - Size of the extract
-  - Token count
-- **CLI tool**: Run it as a shell command
-- **Python package**: Import it in your code
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![PyPI version](https://badge.fury.io/py/gitingest.svg)](https://pypi.org/project/gitingest/)
+[![GitHub stars](https://img.shields.io/github/stars/cyclotruc/gitingest?style=social.svg)](https://github.com/cyclotruc/gitingest)
 
-## 📚 Requirements
+> **Fork of the original [Gitingest](https://github.com/arthurhenry/gitingest)** — this version brings advanced file selection, LLM context extraction, a modern CLI, and developer-focused improvements.
 
-- Python 3.7+
+---
 
-### 📦 Installation
+## 📑 Table of Contents
+- [✨ Features](#-features)
+- [📦 Installation](#-installation)
+- [🚀 Usage](#-usage)
+  - [💻 Command-line (CLI)](#-command-line-cli)
+  - [🐍 Python API](#-python-api)
+  - [🤖 LLM Context Extraction](#-llm-context-extraction)
+- [🐳 Self-host](#-self-host)
+- [🛠️ Stack](#️-stack)
+- [📝 Changelog](#-changelog)
+- [📈 Project Growth](#-project-growth)
+- [🤝 Contributing](#-contributing)
+- [🪪 License](#-license)
+- [⭐ Credits](#-credits)
 
-Gitingest is available on [PyPI](https://pypi.org/project/gitingest/).
-You can install it using `pip`:
+---
+
+## ✨ Features
+
+- **Advanced file selection**: Fine-grained allowlist/ignore management (pathspec, always-include logic, critical infra/config detection)
+- **Modern CLI**: Dynamic subcommands, LLM model selection, ergonomic options
+- **Contextual extraction for LLMs**: Optimized for GPT-4, Claude, Gemini, etc. (token limits, file prioritization, chunking)
+- **Progress bar & live logs**: Real-time feedback with `tqdm`, detailed logging, debug options
+- **Parallel file reading**: Fast context extraction using ThreadPoolExecutor
+- **Robust output management**: Outputs always written to the current working directory, with smart chunking and JSONL format
+- **Extensive test suite**: High coverage, CLI/integration/unit tests, regression protection
+- **Cross-language support**: Works for Python, JS, Java, C#, Go, Rust, React, and more
+- **Self-host ready**: Docker, CI/CD, and config best practices
+
+---
+
+## 📦 Installation
 
 ```bash
 pip install gitingest
 ```
 
-However, it might be a good idea to use `pipx` to install it.
-You can install `pipx` using your preferred package manager.
+Or clone and install locally:
 
 ```bash
-brew install pipx
-apt install pipx
-scoop install pipx
-...
+git clone https://github.com/UsrUnknow/gitingest-ai.git
+cd gitingest-ai
+pip install -e .
 ```
 
-If you are using pipx for the first time, run:
+---
+
+## 🚀 Usage
+
+### 💻 Command-line (CLI)
+
+Extract optimized context for LLMs:
 
 ```bash
-pipx ensurepath
+gitingest ai <model> <source_dir> [options]
 ```
 
+**Examples:**
 ```bash
-# install gitingest
-pipx install gitingest
+gitingest ai gpt-4 ./my-project --format markdown --output context.md
+gitingest ai claude ./src --max-files 50 --dry-run
+gitingest ai gpt-4 . --audit --log-level debug
 ```
 
-## 🧩 Browser Extension Usage
+**Main options:**
+- `--format` (markdown, json, text)
+- `--output` (output file path)
+- `--max-files` (max files in context)
+- `--show-metadata/--no-metadata`
+- `--show-content/--no-content`
+- `--audit` (detailed extraction report)
+- `--dry-run` (no file written)
+- `--log-level` (debug, info, warning, error)
+- `--no-progress` (disable progress bar)
 
-<!-- markdownlint-disable MD033 -->
-<a href="https://chromewebstore.google.com/detail/adfjahbijlkjfoicpjkhjicpjpjfaood" target="_blank" title="Get Gitingest Extension from Chrome Web Store"><img height="48" src="https://github.com/user-attachments/assets/20a6e44b-fd46-4e6c-8ea6-aad436035753" alt="Available in the Chrome Web Store" /></a>
-<a href="https://addons.mozilla.org/firefox/addon/gitingest" target="_blank" title="Get Gitingest Extension from Firefox Add-ons"><img height="48" src="https://github.com/user-attachments/assets/c0e99e6b-97cf-4af2-9737-099db7d3538b" alt="Get The Add-on for Firefox" /></a>
-<a href="https://microsoftedge.microsoft.com/addons/detail/nfobhllgcekbmpifkjlopfdfdmljmipf" target="_blank" title="Get Gitingest Extension from Microsoft Edge Add-ons"><img height="48" src="https://github.com/user-attachments/assets/204157eb-4cae-4c0e-b2cb-db514419fd9e" alt="Get from the Edge Add-ons" /></a>
-<!-- markdownlint-enable MD033 -->
-
-The extension is open source at [lcandy2/gitingest-extension](https://github.com/lcandy2/gitingest-extension).
-
-Issues and feature requests are welcome to the repo.
-
-## 💡 Command line usage
-
-The `gitingest` command line tool allows you to analyze codebases and create a text dump of their contents.
-
-```bash
-# Basic usage
-gitingest /path/to/directory
-
-# From URL
-gitingest https://github.com/cyclotruc/gitingest
-
-# See more options
-gitingest --help
-```
-
-This will write the digest in a text file (default `digest.txt`) in your current working directory.
-
-## 🐍 Python package usage
+### 🐍 Python API
 
 ```python
-# Synchronous usage
-from gitingest import ingest
-
-summary, tree, content = ingest("path/to/directory")
-
-# or from URL
-summary, tree, content = ingest("https://github.com/cyclotruc/gitingest")
+from gitingest.cli import cli
+cli(["ai", "gpt-4", "./my-project", "--format", "json"])
 ```
 
-By default, this won't write a file but can be enabled with the `output` argument.
+Or use the extraction logic directly:
 
 ```python
-# Asynchronous usage
-from gitingest import ingest_async
-import asyncio
+from gitingest.extraction.extractor import extract_repo_context
+from gitingest.utils.filesystem_tree import build_filesystem_tree
+from gitingest.config.model_config import MODEL_CONFIGS
 
-result = asyncio.run(ingest_async("path/to/directory"))
+root_node = build_filesystem_tree("./my-project")
+repo_context = extract_repo_context(root_node, MODEL_CONFIGS["gpt-4"])
 ```
 
-### Jupyter notebook usage
+### 🤖 LLM Context Extraction
 
-```python
-from gitingest import ingest_async
+- **Optimized for LLMs**: Context is chunked, prioritized, and formatted for large language models (GPT-4, Claude, Gemini, etc.)
+- **Critical files always included**: Dockerfile, requirements.txt, Makefile, etc. are never ignored
+- **Smart chunking**: Output split into JSONL files, each respecting model token/file size limits
+- **Progressive extraction**: Real-time progress bar and logs
 
-# Use await directly in Jupyter
-summary, tree, content = await ingest_async("path/to/directory")
-
-```
-
-This is because Jupyter notebooks are asynchronous by default.
+---
 
 ## 🐳 Self-host
 
-1. Build the image:
+- **Docker**: Use the provided Dockerfile for easy deployment
+- **CI/CD**: Ready-to-use GitHub Actions workflows for tests and publishing
+- **Config**: All model/rule configs are centralized in YAML for easy extension
 
-   ``` bash
-   docker build -t gitingest .
-   ```
-
-2. Run the container:
-
-   ``` bash
-   docker run -d --name gitingest -p 8000:8000 gitingest
-   ```
-
-The application will be available at `http://localhost:8000`.
-
-If you are hosting it on a domain, you can specify the allowed hostnames via env variable `ALLOWED_HOSTS`.
-
-   ```bash
-   # Default: "gitingest.com, *.gitingest.com, localhost, 127.0.0.1".
-   ALLOWED_HOSTS="example.com, localhost, 127.0.0.1"
-   ```
-
-## 🤝 Contributing
-
-### Non-technical ways to contribute
-
-- **Create an Issue**: If you find a bug or have an idea for a new feature, please [create an issue](https://github.com/cyclotruc/gitingest/issues/new) on GitHub. This will help us track and prioritize your request.
-- **Spread the Word**: If you like Gitingest, please share it with your friends, colleagues, and on social media. This will help us grow the community and make Gitingest even better.
-- **Use Gitingest**: The best feedback comes from real-world usage! If you encounter any issues or have ideas for improvement, please let us know by [creating an issue](https://github.com/cyclotruc/gitingest/issues/new) on GitHub or by reaching out to us on [Discord](https://discord.com/invite/zerRaGK9EC).
-
-### Technical ways to contribute
-
-Gitingest aims to be friendly for first time contributors, with a simple Python and HTML codebase. If you need any help while working with the code, reach out to us on [Discord](https://discord.com/invite/zerRaGK9EC). For detailed instructions on how to make a pull request, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+---
 
 ## 🛠️ Stack
 
-- [Tailwind CSS](https://tailwindcss.com) - Frontend
-- [FastAPI](https://github.com/fastapi/fastapi) - Backend framework
-- [Jinja2](https://jinja.palletsprojects.com) - HTML templating
-- [tiktoken](https://github.com/openai/tiktoken) - Token estimation
-- [posthog](https://github.com/PostHog/posthog) - Amazing analytics
+- Python 3.8+
+- Click (CLI)
+- tqdm (progress bar)
+- pathspec (gitignore support)
+- Pytest (tests)
+- Docker, GitHub Actions (CI/CD)
 
-### Looking for a JavaScript/FileSystemNode package?
+---
 
-Check out the NPM alternative 📦 Repomix: <https://github.com/yamadashy/repomix>
+## 📝 Changelog
 
-## 🚀 Project Growth
+See [docs/CHANGELOG.md](docs/CHANGELOG.md) for a detailed list of changes and features.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=cyclotruc/gitingest&type=Date)](https://star-history.com/#cyclotruc/gitingest&Date)
+---
+
+## 📈 Project Growth
+
+- **High test coverage**: Extensive unit, CLI, and integration tests
+- **Active maintenance**: Frequent updates, bugfixes, and improvements
+- **Open to contributions**: See below for guidelines
+
+---
+
+## 🤝 Contributing
+
+- **Atomic commits**: Each commit should represent a single logical change
+- **Use [gitmoji](https://gitmoji.dev/)**: Prefix commits with an emoji for clarity
+- **Semantic versioning**: Follow [semver](https://semver.org/)
+- **PRs welcome**: Fork, branch, test, and submit a pull request
+- **Respect the spirit of the original project**: This fork extends, but does not break, the core philosophy of [Gitingest](https://github.com/arthurhenry/gitingest)
+
+---
+
+## 🪪 License
+
+MIT. See [LICENSE](LICENSE).
+
+## ⭐ Credits
+
+- Original project: [Gitingest](https://github.com/arthurhenry/gitingest)
+- Fork & advanced features: [cyclotruc/gitingest-ai](https://github.com/UsrUnknow/gitingest-ai)

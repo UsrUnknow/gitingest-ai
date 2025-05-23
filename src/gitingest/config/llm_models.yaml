@@ -1,0 +1,40 @@
+gpt-4:
+  name: GPT-4
+  max_tokens: 8192
+  max_file_size: 5242880  # 5 MB
+  description: "OpenAI GPT-4, usage général"
+gpt-4o:
+  name: GPT-4o
+  max_tokens: 128000
+  max_file_size: 2000000
+  description: "OpenAI GPT-4o, usage général"
+claude-3-opus:
+  name: Claude 3 Opus
+  max_tokens: 200000
+  max_file_size: 2000000
+  description: "Anthropic Claude 3 Opus"
+gemini-1.5-pro:
+  name: Gemini 1.5 Pro
+  max_tokens: 1000000
+  max_file_size: 2000000
+  description: "Google Gemini 1.5 Pro"
+llama-3-70b:
+  name: Llama 3 70B
+  max_tokens: 80000
+  max_file_size: 2000000
+  description: "Meta Llama 3 70B"
+mistral-large:
+  name: Mistral Large
+  max_tokens: 32000
+  max_file_size: 2000000
+  description: "Mistral Large"
+cohere-command-r:
+  name: Cohere Command R
+  max_tokens: 128000
+  max_file_size: 2000000
+  description: "Cohere Command R"
+genspark:
+  name: Genspark
+  max_tokens: 32000
+  max_file_size: 2000000
+  description: "Genspark (limite stricte 2 Mo)" 

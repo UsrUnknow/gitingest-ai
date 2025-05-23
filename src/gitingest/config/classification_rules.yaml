@@ -1,0 +1,61 @@
+config_files:
+  - pyproject.toml
+  - requirements.txt
+  - .env
+  - .gitignore
+  - setup.py
+  - package.json
+  - Dockerfile
+  - Makefile
+  - .pre-commit-config.yaml
+  - .pylintrc
+  - .flake8
+  - .editorconfig
+  - .github/workflows/
+documentation_exts:
+  - .md
+  - .rst
+  - .txt
+  - .adoc
+source_exts:
+  - .py
+  - .js
+  - .ts
+  - .java
+  - .go
+  - .rs
+  - .cpp
+  - .c
+  - .h
+  - .cs
+  - .php
+  - .rb
+  - .swift
+  - .kt
+  - .scala
+  - .groovy
+test_patterns:
+  - "*test*"
+  - "*spec*"
+notebook_exts:
+  - .ipynb
+script_exts:
+  - .sh
+  - .bash
+  - .zsh
+  - .ps1
+  - .psm1
+  - .bat
+  - .cmd
+  - .fish
+data_exts:
+  - .csv
+  - .tsv
+  - .parquet
+  - .xls
+  - .xlsx
+  - .jsonl
+  - .db
+  - .sqlite
+  - .h5
+  - .hdf5 

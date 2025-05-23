@@ -11,7 +11,7 @@ def _is_safe_symlink(symlink_path: Path, base_path: Path) -> bool:
 
     This function resolves the target of a symlink and ensures it is within the specified
     base directory, returning `True` if it is safe, or `False` if the symlink points outside
-    the base directory.
+    the base directory or is broken.
 
     Parameters
     ----------
@@ -32,6 +32,10 @@ def _is_safe_symlink(symlink_path: Path, base_path: Path) -> bool:
 
         target_path = symlink_path.resolve()
         base_resolved = base_path.resolve()
+
+        # Vérifie que la cible existe réellement
+        if not target_path.exists():
+            return False
 
         return base_resolved in target_path.parents or target_path == base_resolved
     except (OSError, ValueError):

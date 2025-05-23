@@ -9,11 +9,13 @@ from gitingest.output_formatters import format_node
 from gitingest.query_parsing import IngestionQuery
 from gitingest.schemas import FileSystemNode, FileSystemNodeType, FileSystemStats
 from gitingest.utils.ingestion_utils import _should_exclude, _should_include
+from gitingest.utils.path_utils import _is_safe_symlink
 
+# mypy: disable-error-code=no-redef
 try:
     import tomllib  # type: ignore[import]
 except ImportError:
-    import tomli as tomllib
+    import tomli as tomllib  # type: ignore[import]
 
 
 def ingest_query(query: IngestionQuery) -> Tuple[str, str, str]:
@@ -176,19 +178,16 @@ def _process_node(
         return
 
     for sub_path in node.path.iterdir():
-
         if query.ignore_patterns and _should_exclude(sub_path, query.local_path, query.ignore_patterns):
-            continue
-
-        if query.include_patterns and not _should_include(sub_path, query.local_path, query.include_patterns):
             continue
 
         if sub_path.is_symlink():
             _process_symlink(path=sub_path, parent_node=node, stats=stats, local_path=query.local_path)
         elif sub_path.is_file():
-            _process_file(path=sub_path, parent_node=node, stats=stats, local_path=query.local_path)
+            if query.include_patterns and not _should_include(sub_path, query.local_path, query.include_patterns):
+                continue
+            _process_file(path=sub_path, parent_node=node, stats=stats, local_path=query.local_path, query=query)
         elif sub_path.is_dir():
-
             child_directory_node = FileSystemNode(
                 name=sub_path.name,
                 type=FileSystemNodeType.DIRECTORY,
@@ -196,7 +195,6 @@ def _process_node(
                 path=sub_path,
                 depth=node.depth + 1,
             )
-
             _process_node(
                 node=child_directory_node,
                 query=query,
@@ -229,19 +227,20 @@ def _process_symlink(path: Path, parent_node: FileSystemNode, stats: FileSystemS
     local_path : Path
         The base path of the repository or directory being processed.
     """
-    child = FileSystemNode(
-        name=path.name,
-        type=FileSystemNodeType.SYMLINK,
-        path_str=str(path.relative_to(local_path)),
-        path=path,
-        depth=parent_node.depth + 1,
-    )
-    stats.total_files += 1
-    parent_node.children.append(child)
-    parent_node.file_count += 1
+    if _is_safe_symlink(path, local_path):
+        child = FileSystemNode(
+            name=path.name,
+            type=FileSystemNodeType.SYMLINK,
+            path_str=str(path.relative_to(local_path)),
+            path=path,
+            depth=parent_node.depth + 1,
+        )
+        stats.total_files += 1
+        parent_node.children.append(child)
+        parent_node.file_count += 1
 
 
-def _process_file(path: Path, parent_node: FileSystemNode, stats: FileSystemStats, local_path: Path) -> None:
+def _process_file(path: Path, parent_node: FileSystemNode, stats: FileSystemStats, local_path: Path, query=None) -> None:
     """
     Process a file in the file system.
 
@@ -258,8 +257,13 @@ def _process_file(path: Path, parent_node: FileSystemNode, stats: FileSystemStat
         Statistics tracking object for the total file count and size.
     local_path : Path
         The base path of the repository or directory being processed.
+    query : IngestionQuery, optional
+        The parsed query object containing additional query parameters.
     """
     file_size = path.stat().st_size
+    # Filtrage par taille individuelle
+    if query is not None and hasattr(query, "max_file_size") and file_size > query.max_file_size:
+        return
     if stats.total_size + file_size > MAX_TOTAL_SIZE_BYTES:
         print(f"Skipping file {path}: would exceed total size limit")
         return

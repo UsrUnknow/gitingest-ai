@@ -85,3 +85,16 @@ Thanks for your interest in contributing to Gitingest! 🚀 Gitingest aims to be
 13. Wait for the maintainers to review your pull request. If there are any issues, fix them and repeat steps 6 to 12.
 
     *(Optional) Invite project maintainer to your branch for easier collaboration.*
+
+## Commit & Versioning Best Practices
+
+- Use **atomic commits**: each commit should represent a single logical change.
+- Follow the [gitmoji](https://gitmoji.dev/) convention to illustrate your commits with an emoji (copy the emoji directly into the message).
+- Recommended structure: `<emoji> <type/scope>: clear message`
+  - Examples:
+    - `✨ feat(cli): add dynamic subcommand generation`
+    - `♻️ refactor: centralize classification rules in YAML`
+    - `🐛 fix: correct allowlist handling in scan`
+    - `🚀 perf: parallelize file reading and add progress bar`
+- Use **semantic versioning** for releases.
+- As this is a fork, please ensure your contributions respect the original project's spirit while bringing advanced improvements.

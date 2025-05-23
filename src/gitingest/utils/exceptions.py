@@ -35,3 +35,15 @@ class InvalidNotebookError(Exception):
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
+
+
+class InvalidConfigError(Exception):
+    """Erreur de configuration (YAML manquant ou invalide)."""
+
+
+class UnreadableFileError(Exception):
+    """Fichier non lisible ou encodage non supporté."""
+
+
+class BinaryFileIgnored(Exception):
+    """Fichier binaire ignoré lors de l'extraction."""
