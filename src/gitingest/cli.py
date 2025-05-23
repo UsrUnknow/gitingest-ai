@@ -344,21 +344,21 @@ def create_cli():
             click.echo(json.dumps(report, ensure_ascii=False, indent=2))
 
     @cli.command()
-@click.argument("source", type=str, default=".")
+    @click.argument("source", type=str, default=".")
     @click.option("--output", "-o", default=None, help="Chemin du fichier de sortie (par défaut: <repo_name>.txt dans le dossier courant)")
     @click.option("--max-size", "-s", default=MAX_FILE_SIZE, help="Taille maximale d'un fichier à traiter (en octets)")
     @click.option("--exclude-pattern", "-e", multiple=True, help="Patterns à exclure (ex: *.md, tests/*)")
     @click.option("--include-pattern", "-i", multiple=True, help="Patterns à inclure (ex: *.py, src/*)")
     @click.option("--branch", "-b", default=None, help="Branche à cloner et analyser")
-def main(
-    source: str,
+    def main(
+        source: str,
         output: str,
-    max_size: int,
+        max_size: int,
         exclude_pattern,
         include_pattern,
         branch,
-):
-    """
+    ):
+        """
         Point d'entrée principal de la CLI (analyse classique).
 
         SOURCE : chemin du dépôt à analyser (par défaut: .)
@@ -374,29 +374,29 @@ def main(
           --include-pattern  Patterns à inclure (ex: *.py, src/*)
           --branch           Branche à cloner et analyser
         """
-    asyncio.run(_async_main(source, output, max_size, exclude_pattern, include_pattern, branch))
+        asyncio.run(_async_main(source, output, max_size, exclude_pattern, include_pattern, branch))
 
-async def _async_main(
-    source: str,
+    async def _async_main(
+        source: str,
         output: str,
-    max_size: int,
+        max_size: int,
         exclude_pattern,
         include_pattern,
         branch,
-) -> None:
+    ) -> None:
         try:
             from gitingest.config import OUTPUT_FILE_NAME
-        exclude_patterns = set(exclude_pattern)
-        include_patterns = set(include_pattern)
-        if not output:
-            output = OUTPUT_FILE_NAME
-        summary, _, _ = await ingest_async(source, max_size, include_patterns, exclude_patterns, branch, output=output)
-        click.echo(f"Analysis complete! Output written to: {output}")
-        click.echo("\nSummary:")
-        click.echo(summary)
-    except Exception as exc:
-        click.echo(f"Error: {exc}", err=True)
-        raise click.Abort()
+            exclude_patterns = set(exclude_pattern)
+            include_patterns = set(include_pattern)
+            if not output:
+                output = OUTPUT_FILE_NAME
+            summary, _, _ = await ingest_async(source, max_size, include_patterns, exclude_patterns, branch, output=output)
+            click.echo(f"Analysis complete! Output written to: {output}")
+            click.echo("\nSummary:")
+            click.echo(summary)
+        except Exception as exc:
+            click.echo(f"Error: {exc}", err=True)
+            raise click.Abort()
 
     return cli
 
