@@ -483,3 +483,30 @@ async def test_parse_repo_source_with_various_url_patterns(url, expected_branch,
 
             assert query.branch == expected_branch
             assert query.subpath == expected_subpath
+
+
+@pytest.mark.asyncio
+async def test_parse_url_with_failed_branch_fetch():
+    """
+    Test _parse_remote_repo avec une erreur lors de la récupération des branches distantes.
+    On doit retourner le premier segment comme nom de branche.
+    """
+    url = "https://github.com/user/repo/tree/feature-branch/subdir/file"
+    with patch("gitingest.utils.git_utils.fetch_remote_branch_list", side_effect=RuntimeError("fail")):
+        query = await _parse_remote_repo(url)
+        # Le fallback doit mettre 'feature-branch' comme branche
+        assert query.branch == "feature-branch"
+        assert query.subpath == "/subdir/file"
+
+
+@pytest.mark.asyncio
+async def test_try_domains_for_user_and_repo_all_fail():
+    """
+    Test try_domains_for_user_and_repo quand aucun domaine ne répond (tous les check_repo_exists échouent).
+    On doit lever une ValueError explicite.
+    """
+    from gitingest.query_parsing import try_domains_for_user_and_repo
+    with patch("gitingest.utils.git_utils.check_repo_exists", new_callable=AsyncMock) as mock_check:
+        mock_check.return_value = False
+        with pytest.raises(ValueError, match="Could not find a valid repository host"):
+            await try_domains_for_user_and_repo("user", "repo")

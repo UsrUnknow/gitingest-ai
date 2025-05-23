@@ -4,13 +4,13 @@ import os
 
 from click.testing import CliRunner
 
-from gitingest.cli import main
+from gitingest.cli import cli
 from gitingest.config import MAX_FILE_SIZE, OUTPUT_FILE_NAME
 
 
 def test_cli_with_default_options():
     runner = CliRunner()
-    result = runner.invoke(main, ["./"])
+    result = runner.invoke(cli, ["main", "./"])
     output_lines = result.output.strip().split("\n")
     assert f"Analysis complete! Output written to: {OUTPUT_FILE_NAME}" in output_lines
     assert os.path.exists(OUTPUT_FILE_NAME), f"Output file was not created at {OUTPUT_FILE_NAME}"
@@ -21,8 +21,9 @@ def test_cli_with_default_options():
 def test_cli_with_options():
     runner = CliRunner()
     result = runner.invoke(
-        main,
+        cli,
         [
+            "main",
             "./",
             "--output",
             str(OUTPUT_FILE_NAME),
