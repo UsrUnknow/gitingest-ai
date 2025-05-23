@@ -86,15 +86,15 @@ Thanks for your interest in contributing to Gitingest! 🚀 Gitingest aims to be
 
     *(Optional) Invite project maintainer to your branch for easier collaboration.*
 
-## Bonnes pratiques de commit et versioning
+## Commit & Versioning Best Practices
 
-- Utilisez des commits **atomiques** : chaque commit doit correspondre à une modification logique unique.
-- Adoptez la convention [gitmoji](https://gitmoji.dev/) pour illustrer l’intention de vos commits avec un emoji (copiez l’emoji directement dans le message).
-- Structure recommandée : `<emoji> <type/scope>: message explicite`
-  - Exemples :
-    - `✨ feat(cli): ajout de la génération dynamique des sous-commandes`
-    - `♻️ refactor: centralisation des règles de classification dans YAML`
-    - `🐛 fix: gestion correcte des allowlist dans le scan`
-    - `🚀 perf: parallélisation de la lecture des fichiers`
-    - `📝 docs: mise à jour du README et des instructions de contribution`
-- Respectez le versioning sémantique (MAJOR.MINOR.PATCH) pour les releases.
+- Use **atomic commits**: each commit should represent a single logical change.
+- Follow the [gitmoji](https://gitmoji.dev/) convention to illustrate your commits with an emoji (copy the emoji directly into the message).
+- Recommended structure: `<emoji> <type/scope>: clear message`
+  - Examples:
+    - `✨ feat(cli): add dynamic subcommand generation`
+    - `♻️ refactor: centralize classification rules in YAML`
+    - `🐛 fix: correct allowlist handling in scan`
+    - `🚀 perf: parallelize file reading and add progress bar`
+- Use **semantic versioning** for releases.
+- As this is a fork, please ensure your contributions respect the original project's spirit while bringing advanced improvements.

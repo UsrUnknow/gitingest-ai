@@ -1,22 +1,30 @@
-# Changelog
+# Changelog (Advanced Gitingest Fork)
 
 ## [Unreleased]
 
-### ✨ Nouvelles fonctionnalités
-- ✨ Extraction contextuelle priorisée pour LLM (GPT-4, Claude, Gemini, etc.)
-- ✨ CLI modernisée avec sous-commandes dynamiques : `gitingest ai <modèle>`
-- ✨ Barre de progression (`tqdm`) lors du traitement des fichiers
-- ✨ Parallélisation de la lecture des fichiers (ThreadPoolExecutor)
-- ✨ Allowlist stricte pour l'inclusion des fichiers critiques d'infra/config
+### ✨ New Features
+- ✨ Contextual extraction for LLMs (GPT-4, Claude, Gemini, etc.)
+- ✨ Modern CLI with dynamic subcommands: `gitingest ai <model>`
+- ✨ Progress bar (`tqdm`) during file processing
+- ✨ Parallel file reading (ThreadPoolExecutor)
+- ✨ Strict allowlist for critical infra/config files
 
-### ♻️ Refactorisation
-- ♻️ Centralisation de la configuration LLM et des règles de classification dans des fichiers YAML
-- ♻️ Factorisation et typage des modules métiers (classification, extraction, formatting, utils)
+### ♻️ Refactoring
+- ♻️ Centralized LLM/configuration and classification rules in YAML
+- ♻️ Refactored and strongly-typed business modules (classification, extraction, formatting, utils)
 
-### 🐛 Corrections de bugs
-- 🐛 Correction de la gestion des allowlist et de l'exclusion des artefacts
-- 🐛 Correction de la génération dynamique des sous-commandes
-- 🐛 Correction de la logique de découpage IA et de l'inclusion des fichiers critiques dans le contexte
+### 🐛 Bug Fixes
+- 🐛 Correct allowlist handling and artifact exclusion
+- 🐛 Improved symlink and duplicate management
+- 🐛 Output files now created in the current directory by default
+
+### 🚀 Performance
+- 🚀 Parallelization and live progress bar for fast processing
+- 🚀 Detailed logs and diagnostics for bottleneck analysis
+
+### ✅ Tests
+- ✅ Extensive unit, CLI, and integration tests
+- ✅ High coverage and robust test structure
 
 ### 🚀 Performance & UX
 - 🚀 Nettoyage des logs et option d'activation du debug

@@ -263,3 +263,39 @@ Pour toute question ou suggestion, ouvrez une issue ou rejoignez-nous sur [Disco
 - Adoptez la convention [gitmoji](https://gitmoji.dev/) pour vos messages de commit (ex : `:sparkles: Ajout extraction contextuelle LLM`).
 - Privilégiez les PRs courtes et bien documentées.
 - Respectez la structure du projet et les conventions de typage/docstring.
+
+# ⚡ Gitingest AI (Advanced Fork)
+
+> **This project is a fork of the original [Gitingest](https://github.com/arthurhenry/gitingest).**
+>
+> This fork brings advanced features and improvements to the original solution, including:
+> - Fine-grained allowlist/ignore management (with pathspec and always-include logic)
+> - Modern CLI with dynamic subcommands and LLM model selection
+> - Contextual extraction for LLMs (GPT-4, Claude, Gemini, etc.)
+> - Progress bar and live logs (tqdm)
+> - Parallel file reading for performance
+> - Robust artifact/cache exclusion and config file inclusion
+> - Extensive tests and improved developer experience
+
+## 🚀 What's new in this fork?
+- Centralized LLM/configuration in YAML
+- Strongly-typed, documented, and refactored business modules
+- Modern CLI: all LLM commands under `gitingest ai <model> ...` with dynamic subcommands
+- Complete test structure (unit, CLI, integration) with high coverage
+- Advanced file inclusion/exclusion logic (allowlist, .gitignore, pathspec)
+- Progress bar and parallelization for fast processing
+- Detailed logs and diagnostics
+- Strict allowlist for critical infra/config files
+- Professional artifact/cache exclusion
+- Compatible with any language or project structure
+
+## 📝 Contribution & Commit Guidelines
+
+- Use **atomic commits**: each commit should be a single logical change.
+- Adopt the [gitmoji](https://gitmoji.dev/) convention for commit messages (copy the emoji directly).
+- Recommended structure: `<emoji> <type/scope>: clear message`
+  - Examples:
+    - `✨ feat(cli): add dynamic subcommand generation`
+    - `♻️ refactor: centralize classification rules in YAML`
+    - `🐛 fix: correct allowlist handling in scan`
+    - `🚀 perf: parallelize file reading and add progress bar`
