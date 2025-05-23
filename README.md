@@ -15,23 +15,49 @@ You can also replace `hub` with `ingest` in any GitHub URL to access the corresp
 
 [gitingest.com](https://gitingest.com) · [Chrome Extension](https://chromewebstore.google.com/detail/adfjahbijlkjfoicpjkhjicpjpjfaood) · [Firefox Add-on](https://addons.mozilla.org/firefox/addon/gitingest)
 
+# ⚡ Gitingest AI (Advanced Fork)
+
+> **This project is a fork of the original [Gitingest](https://github.com/arthurhenry/gitingest).**
+>
+> This fork brings advanced features and improvements to the original solution, including:
+> - Fine-grained allowlist/ignore management (with pathspec and always-include logic)
+> - Modern CLI with dynamic subcommands and LLM model selection
+> - Contextual extraction for LLMs (GPT-4, Claude, Gemini, etc.)
+> - Progress bar and live logs (tqdm)
+> - Parallel file reading for performance
+> - Robust artifact/cache exclusion and config file inclusion
+> - Extensive tests and improved developer experience
+
+---
+
+## 📑 Table of Contents
+- [Features](#features)
+- [Installation](#installation)
+- [Command Line Usage](#command-line-usage)
+- [Python Usage](#python-usage)
+- [LLM Context Extraction](#llm-context-extraction)
+- [Self-host](#self-host)
+- [Contribution & Commit Guidelines](#contribution--commit-guidelines)
+- [Stack](#stack)
+- [Changelog](#changelog)
+
+---
+
 ## 🚀 Features
+- Centralized LLM/configuration in YAML
+- Strongly-typed, documented, and refactored business modules
+- Modern CLI: all LLM commands under `gitingest ai <model> ...` with dynamic subcommands
+- Complete test structure (unit, CLI, integration) with high coverage
+- Advanced file inclusion/exclusion logic (allowlist, .gitignore, pathspec)
+- Progress bar and parallelization for fast processing
+- Detailed logs and diagnostics
+- Strict allowlist for critical infra/config files
+- Professional artifact/cache exclusion
+- Compatible with any language or project structure
 
-- **Easy code context**: Get a text digest from a Git repository URL or a directory
-- **Smart Formatting**: Optimized output format for LLM prompts
-- **Statistics about**:
-  - File and directory structure
-  - Size of the extract
-  - Token count
-- **CLI tool**: Run it as a shell command
-- **Python package**: Import it in your code
+---
 
-## 📚 Requirements
-
-- Python 3.7+
-
-### 📦 Installation
-
+## 📦 Installation
 Gitingest is available on [PyPI](https://pypi.org/project/gitingest/).
 You can install it using `pip`:
 
@@ -39,41 +65,14 @@ You can install it using `pip`:
 pip install gitingest
 ```
 
-However, it might be a good idea to use `pipx` to install it.
-You can install `pipx` using your preferred package manager.
-
+Or with `pipx`:
 ```bash
-brew install pipx
-apt install pipx
-scoop install pipx
-...
-```
-
-If you are using pipx for the first time, run:
-
-```bash
-pipx ensurepath
-```
-
-```bash
-# install gitingest
 pipx install gitingest
 ```
 
-## 🧩 Browser Extension Usage
+---
 
-<!-- markdownlint-disable MD033 -->
-<a href="https://chromewebstore.google.com/detail/adfjahbijlkjfoicpjkhjicpjpjfaood" target="_blank" title="Get Gitingest Extension from Chrome Web Store"><img height="48" src="https://github.com/user-attachments/assets/20a6e44b-fd46-4e6c-8ea6-aad436035753" alt="Available in the Chrome Web Store" /></a>
-<a href="https://addons.mozilla.org/firefox/addon/gitingest" target="_blank" title="Get Gitingest Extension from Firefox Add-ons"><img height="48" src="https://github.com/user-attachments/assets/c0e99e6b-97cf-4af2-9737-099db7d3538b" alt="Get The Add-on for Firefox" /></a>
-<a href="https://microsoftedge.microsoft.com/addons/detail/nfobhllgcekbmpifkjlopfdfdmljmipf" target="_blank" title="Get Gitingest Extension from Microsoft Edge Add-ons"><img height="48" src="https://github.com/user-attachments/assets/204157eb-4cae-4c0e-b2cb-db514419fd9e" alt="Get from the Edge Add-ons" /></a>
-<!-- markdownlint-enable MD033 -->
-
-The extension is open source at [lcandy2/gitingest-extension](https://github.com/lcandy2/gitingest-extension).
-
-Issues and feature requests are welcome to the repo.
-
-## 💡 Command line usage
-
+## 💡 Command Line Usage
 The `gitingest` command line tool allows you to analyze codebases and create a text dump of their contents.
 
 ```bash
@@ -89,62 +88,110 @@ gitingest --help
 
 This will write the digest in a text file (default `digest.txt`) in your current working directory.
 
-## 🐍 Python package usage
+---
 
+## 🐍 Python Usage
 ```python
-# Synchronous usage
 from gitingest import ingest
-
 summary, tree, content = ingest("path/to/directory")
-
 # or from URL
 summary, tree, content = ingest("https://github.com/cyclotruc/gitingest")
 ```
 
-By default, this won't write a file but can be enabled with the `output` argument.
-
+Async usage (e.g. Jupyter):
 ```python
-# Asynchronous usage
 from gitingest import ingest_async
 import asyncio
-
 result = asyncio.run(ingest_async("path/to/directory"))
 ```
 
-### Jupyter notebook usage
+---
 
-```python
-from gitingest import ingest_async
+## 🤖 LLM Context Extraction
+Gitingest AI provides smart extraction and formatting for LLMs (GPT-4, Claude, Gemini, etc.).
 
-# Use await directly in Jupyter
-summary, tree, content = await ingest_async("path/to/directory")
+### Example usage
+```bash
+# Optimized extraction for GPT-4o, Markdown format
+gitingest ai-context --model gpt-4o --format markdown --output context.md
 
+# Extraction for Claude 3 Sonnet, JSON format
+gitingest ai-context --model claude-3-sonnet --format json
+
+# Limit to 20 files, metadata only
+gitingest ai-context --model mistral-large --max-files 20 --no-content --show-metadata
 ```
 
-This is because Jupyter notebooks are asynchronous by default.
+See `gitingest ai-context --help` for all options and supported models.
+
+---
 
 ## 🐳 Self-host
-
 1. Build the image:
-
-   ``` bash
+   ```bash
    docker build -t gitingest .
    ```
-
 2. Run the container:
-
-   ``` bash
+   ```bash
    docker run -d --name gitingest -p 8000:8000 gitingest
    ```
+The app will be available at `http://localhost:8000`.
 
-The application will be available at `http://localhost:8000`.
+---
 
-If you are hosting it on a domain, you can specify the allowed hostnames via env variable `ALLOWED_HOSTS`.
+## 🤝 Contribution & Commit Guidelines
+- Use **atomic commits**: each commit should be a single logical change.
+- Adopt the [gitmoji](https://gitmoji.dev/) convention for commit messages (copy the emoji directly).
+- Recommended structure: `<emoji> <type/scope>: clear message`
+  - Examples:
+    - `✨ feat(cli): add dynamic subcommand generation`
+    - `♻️ refactor: centralize classification rules in YAML`
+    - `🐛 fix: correct allowlist handling in scan`
+    - `🚀 perf: parallelize file reading and add progress bar`
+- Please ensure your contributions respect the original project's spirit while bringing advanced improvements.
 
-   ```bash
-   # Default: "gitingest.com, *.gitingest.com, localhost, 127.0.0.1".
-   ALLOWED_HOSTS="example.com, localhost, 127.0.0.1"
-   ```
+For detailed instructions, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+---
+
+## 🛠️ Stack
+- [Tailwind CSS](https://tailwindcss.com) - Frontend
+- [FastAPI](https://github.com/fastapi/fastapi) - Backend framework
+- [Jinja2](https://jinja.palletsprojects.com) - HTML templating
+- [tiktoken](https://github.com/openai/tiktoken) - Token estimation
+- [posthog](https://github.com/PostHog/posthog) - Analytics
+
+---
+
+## 📝 Changelog
+See [CHANGELOG.md](docs/CHANGELOG.md) for a detailed list of changes.
+
+## 🚀 Features
+
+- **Easy code context**: Get a text digest from a Git repository URL or a directory
+- **Smart Formatting**: Optimized output format for LLM prompts
+- **Statistics about**:
+  - File and directory structure
+  - Size of the extract
+  - Token count
+- **CLI tool**: Run it as a shell command
+- **Python package**: Import it in your code
+
+## 📚 Requirements
+
+- Python 3.7+
+
+## 🧩 Browser Extension Usage
+
+<!-- markdownlint-disable MD033 -->
+<a href="https://chromewebstore.google.com/detail/adfjahbijlkjfoicpjkhjicpjpjfaood" target="_blank" title="Get Gitingest Extension from Chrome Web Store"><img height="48" src="https://github.com/user-attachments/assets/20a6e44b-fd46-4e6c-8ea6-aad436035753" alt="Available in the Chrome Web Store" /></a>
+<a href="https://addons.mozilla.org/firefox/addon/gitingest" target="_blank" title="Get Gitingest Extension from Firefox Add-ons"><img height="48" src="https://github.com/user-attachments/assets/c0e99e6b-97cf-4af2-9737-099db7d3538b" alt="Get The Add-on for Firefox" /></a>
+<a href="https://microsoftedge.microsoft.com/addons/detail/nfobhllgcekbmpifkjlopfdfdmljmipf" target="_blank" title="Get Gitingest Extension from Microsoft Edge Add-ons"><img height="48" src="https://github.com/user-attachments/assets/204157eb-4cae-4c0e-b2cb-db514419fd9e" alt="Get from the Edge Add-ons" /></a>
+<!-- markdownlint-enable MD033 -->
+
+The extension is open source at [lcandy2/gitingest-extension](https://github.com/lcandy2/gitingest-extension).
+
+Issues and feature requests are welcome to the repo.
 
 ## 🤝 Contributing
 
@@ -263,39 +310,3 @@ Pour toute question ou suggestion, ouvrez une issue ou rejoignez-nous sur [Disco
 - Adoptez la convention [gitmoji](https://gitmoji.dev/) pour vos messages de commit (ex : `:sparkles: Ajout extraction contextuelle LLM`).
 - Privilégiez les PRs courtes et bien documentées.
 - Respectez la structure du projet et les conventions de typage/docstring.
-
-# ⚡ Gitingest AI (Advanced Fork)
-
-> **This project is a fork of the original [Gitingest](https://github.com/arthurhenry/gitingest).**
->
-> This fork brings advanced features and improvements to the original solution, including:
-> - Fine-grained allowlist/ignore management (with pathspec and always-include logic)
-> - Modern CLI with dynamic subcommands and LLM model selection
-> - Contextual extraction for LLMs (GPT-4, Claude, Gemini, etc.)
-> - Progress bar and live logs (tqdm)
-> - Parallel file reading for performance
-> - Robust artifact/cache exclusion and config file inclusion
-> - Extensive tests and improved developer experience
-
-## 🚀 What's new in this fork?
-- Centralized LLM/configuration in YAML
-- Strongly-typed, documented, and refactored business modules
-- Modern CLI: all LLM commands under `gitingest ai <model> ...` with dynamic subcommands
-- Complete test structure (unit, CLI, integration) with high coverage
-- Advanced file inclusion/exclusion logic (allowlist, .gitignore, pathspec)
-- Progress bar and parallelization for fast processing
-- Detailed logs and diagnostics
-- Strict allowlist for critical infra/config files
-- Professional artifact/cache exclusion
-- Compatible with any language or project structure
-
-## 📝 Contribution & Commit Guidelines
-
-- Use **atomic commits**: each commit should be a single logical change.
-- Adopt the [gitmoji](https://gitmoji.dev/) convention for commit messages (copy the emoji directly).
-- Recommended structure: `<emoji> <type/scope>: clear message`
-  - Examples:
-    - `✨ feat(cli): add dynamic subcommand generation`
-    - `♻️ refactor: centralize classification rules in YAML`
-    - `🐛 fix: correct allowlist handling in scan`
-    - `🚀 perf: parallelize file reading and add progress bar`
