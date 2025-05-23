@@ -139,7 +139,7 @@ async def _parse_remote_repo(source: str) -> IngestionQuery:
 
     _id = str(uuid.uuid4())
     slug = f"{user_name}-{repo_name}"
-    local_path = TMP_BASE_PATH / _id / slug
+    local_path = Path(TMP_BASE_PATH) / _id / slug
     url = f"https://{host}/{user_name}/{repo_name}"
 
     parsed = IngestionQuery(
