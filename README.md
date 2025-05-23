@@ -17,154 +17,100 @@ You can also replace `hub` with `ingest` in any GitHub URL to access the corresp
 
 # ⚡ Gitingest AI (Advanced Fork)
 
-> **This project is a fork of the original [Gitingest](https://github.com/arthurhenry/gitingest).**
->
-> This fork brings advanced features and improvements to the original solution, including:
-> - Fine-grained allowlist/ignore management (with pathspec and always-include logic)
-> - Modern CLI with dynamic subcommands and LLM model selection
-> - Contextual extraction for LLMs (GPT-4, Claude, Gemini, etc.)
-> - Progress bar and live logs (tqdm)
-> - Parallel file reading for performance
-> - Robust artifact/cache exclusion and config file inclusion
-> - Extensive tests and improved developer experience
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![PyPI version](https://badge.fury.io/py/gitingest.svg)](https://pypi.org/project/gitingest/)
+[![GitHub stars](https://img.shields.io/github/stars/cyclotruc/gitingest?style=social.svg)](https://github.com/cyclotruc/gitingest)
 
----
-
-## 📑 Table of Contents
-- [Features](#features)
-- [Installation](#installation)
-- [Command Line Usage](#command-line-usage)
-- [Python Usage](#python-usage)
-- [LLM Context Extraction](#llm-context-extraction)
-- [Self-host](#self-host)
-- [Contribution & Commit Guidelines](#contribution--commit-guidelines)
-- [Stack](#stack)
-- [Changelog](#changelog)
-
----
-
-## 🚀 Features
-- Centralized LLM/configuration in YAML
-- Strongly-typed, documented, and refactored business modules
-- Modern CLI: all LLM commands under `gitingest ai <model> ...` with dynamic subcommands
-- Complete test structure (unit, CLI, integration) with high coverage
-- Advanced file inclusion/exclusion logic (allowlist, .gitignore, pathspec)
-- Progress bar and parallelization for fast processing
-- Detailed logs and diagnostics
-- Strict allowlist for critical infra/config files
-- Professional artifact/cache exclusion
-- Compatible with any language or project structure
+> **Fork of the original [Gitingest](https://github.com/arthurhenry/gitingest)** — this version brings advanced file selection, LLM context extraction, a modern CLI, and developer-focused improvements.
 
 ---
 
 ## 📦 Installation
-Gitingest is available on [PyPI](https://pypi.org/project/gitingest/).
-You can install it using `pip`:
-
 ```bash
 pip install gitingest
-```
-
-Or with `pipx`:
-```bash
+# or
 pipx install gitingest
 ```
 
 ---
 
-## 💡 Command Line Usage
-The `gitingest` command line tool allows you to analyze codebases and create a text dump of their contents.
+## 🚀 Features
+- Fine-grained allowlist/ignore management (pathspec, always-include logic)
+- Modern CLI with dynamic subcommands and LLM model selection
+- Contextual extraction for LLMs (GPT-4, Claude, Gemini, etc.)
+- Progress bar and live logs (tqdm)
+- Parallel file reading for performance
+- Robust artifact/cache exclusion and config file inclusion
+- Extensive tests and improved developer experience
+- Compatible with any language or project structure
 
+---
+
+## 💡 Usage
+
+### Command Line & LLM Extraction
 ```bash
-# Basic usage
+# Analyze a local directory or remote repo
 gitingest /path/to/directory
+gitingest https://github.com/user/repo
 
-# From URL
-gitingest https://github.com/cyclotruc/gitingest
-
-# See more options
-gitingest --help
-```
-
-This will write the digest in a text file (default `digest.txt`) in your current working directory.
-
----
-
-## 🐍 Python Usage
-```python
-from gitingest import ingest
-summary, tree, content = ingest("path/to/directory")
-# or from URL
-summary, tree, content = ingest("https://github.com/cyclotruc/gitingest")
-```
-
-Async usage (e.g. Jupyter):
-```python
-from gitingest import ingest_async
-import asyncio
-result = asyncio.run(ingest_async("path/to/directory"))
-```
-
----
-
-## 🤖 LLM Context Extraction
-Gitingest AI provides smart extraction and formatting for LLMs (GPT-4, Claude, Gemini, etc.).
-
-### Example usage
-```bash
-# Optimized extraction for GPT-4o, Markdown format
+# LLM context extraction (Markdown output for GPT-4o)
 gitingest ai-context --model gpt-4o --format markdown --output context.md
 
-# Extraction for Claude 3 Sonnet, JSON format
-gitingest ai-context --model claude-3-sonnet --format json
-
-# Limit to 20 files, metadata only
-gitingest ai-context --model mistral-large --max-files 20 --no-content --show-metadata
+# See all options
+gitingest --help
+gitingest ai-context --help
 ```
 
-See `gitingest ai-context --help` for all options and supported models.
+### Python API
+```python
+from gitingest import ingest, ingest_async
+summary, tree, content = ingest("/path/to/directory")
+# Async
+import asyncio
+result = asyncio.run(ingest_async("/path/to/directory"))
+```
 
 ---
 
 ## 🐳 Self-host
-1. Build the image:
-   ```bash
-   docker build -t gitingest .
-   ```
-2. Run the container:
-   ```bash
-   docker run -d --name gitingest -p 8000:8000 gitingest
-   ```
-The app will be available at `http://localhost:8000`.
+```bash
+docker build -t gitingest .
+docker run -d --name gitingest -p 8000:8000 gitingest
+```
+App available at `http://localhost:8000`.
 
 ---
 
-## 🤝 Contribution & Commit Guidelines
-- Use **atomic commits**: each commit should be a single logical change.
-- Adopt the [gitmoji](https://gitmoji.dev/) convention for commit messages (copy the emoji directly).
-- Recommended structure: `<emoji> <type/scope>: clear message`
-  - Examples:
-    - `✨ feat(cli): add dynamic subcommand generation`
-    - `♻️ refactor: centralize classification rules in YAML`
-    - `🐛 fix: correct allowlist handling in scan`
-    - `🚀 perf: parallelize file reading and add progress bar`
-- Please ensure your contributions respect the original project's spirit while bringing advanced improvements.
-
-For detailed instructions, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+## 🤝 Contribution
+- Use **atomic commits** and [gitmoji](https://gitmoji.dev/) for commit messages
+- See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines
+- Respect the original project's spirit while bringing advanced improvements
 
 ---
 
 ## 🛠️ Stack
-- [Tailwind CSS](https://tailwindcss.com) - Frontend
-- [FastAPI](https://github.com/fastapi/fastapi) - Backend framework
-- [Jinja2](https://jinja.palletsprojects.com) - HTML templating
-- [tiktoken](https://github.com/openai/tiktoken) - Token estimation
-- [posthog](https://github.com/PostHog/posthog) - Analytics
+- [FastAPI](https://github.com/fastapi/fastapi) — backend
+- [Jinja2](https://jinja.palletsprojects.com) — templating
+- [Tailwind CSS](https://tailwindcss.com) — frontend
+- [tiktoken](https://github.com/openai/tiktoken) — token estimation
+- [posthog](https://github.com/PostHog/posthog) — analytics
 
 ---
 
 ## 📝 Changelog
 See [CHANGELOG.md](docs/CHANGELOG.md) for a detailed list of changes.
+
+---
+
+## 📄 License
+MIT — see [LICENSE](LICENSE)
+
+---
+
+## 🙏 Credits
+- Original project: [Gitingest by arthurhenry](https://github.com/arthurhenry/gitingest)
+- This fork: advanced features, LLM context, CLI, and developer experience by [your name or org]
 
 ## 🚀 Features
 
