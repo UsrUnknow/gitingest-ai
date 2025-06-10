@@ -68,7 +68,7 @@ def build_filesystem_tree(path: Path, depth: int = 0) -> FileSystemNode:
             path=path,
             size=size,
             depth=depth,
-        )
+        ) 
 
 def build_filesystem_tree(root_path):
     """
