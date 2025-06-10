@@ -1,0 +1,440 @@
+# Configuration par défaut des filtres pour gitingest
+
+# Répertoires à exclure par défaut
+exclude_directories:
+  # Dépendances et packages
+  - node_modules
+  - vendor
+  - deps
+  - target
+  - dist
+  - build
+  - _build
+  - out
+  - bin
+  - obj
+  
+  # Environnements virtuels Python
+  - venv
+  - .venv
+  - env
+  - .env
+  - virtualenv
+  
+  # Cache et fichiers temporaires
+  - __pycache__
+  - .pytest_cache
+  - .mypy_cache
+  - .tox
+  - .cache
+  - .coverage
+  - htmlcov
+  - coverage
+  
+  # Contrôle de version
+  - .git
+  - .svn
+  - .hg
+  
+  # IDEs et éditeurs
+  - .vscode
+  - .idea
+  - .vs
+  - "*.code-workspace"
+  
+  # Frameworks web
+  - .next
+  - .nuxt
+  - .angular
+  - .svelte-kit
+  - .expo
+  - .webpack
+  
+  # .NET C#
+  - packages
+  - TestResults
+  - "*.nupkg"
+  
+  # Mobile
+  - ios/build
+  - android/build
+  - android/.gradle
+  - android/app/build
+  
+  # Java/Kotlin
+  - .gradle
+  - .m2
+  
+  # Autres
+  - .elixir_ls
+  - .terraform
+  - logs
+  - temp
+  - tmp
+
+# Extensions de fichiers à exclure par défaut
+exclude_extensions:
+  # Logs et temporaires
+  - .log
+  - .tmp
+  - .temp
+  - .bak
+  - .swp
+  - .swo
+  
+  # Fichiers système
+  - .DS_Store
+  - Thumbs.db
+  - desktop.ini
+  
+  # Binaires compilés
+  - .pyc
+  - .pyo
+  - .pyd
+  - .class
+  - .o
+  - .so
+  - .dll
+  - .exe
+  - .bin
+  - .obj
+  - .pdb
+  - .lib
+  - .a
+  
+  # Archives
+  - .zip
+  - .tar.gz
+  - .rar
+  - .7z
+  - .gz
+  - .bz2
+  
+  # Images (optionnel, peut être activé selon le besoin)
+  # - .jpg
+  # - .jpeg
+  # - .png
+  # - .gif
+  # - .svg
+  # - .ico
+  
+  # Médias
+  - .mp4
+  - .avi
+  - .mov
+  - .mp3
+  - .wav
+  - .flac
+
+# Patterns de fichiers à exclure
+exclude_file_patterns:
+  - "package-lock.json"
+  - "yarn.lock" 
+  - "composer.lock"
+  - "Gemfile.lock"
+  - "poetry.lock"
+  - "Pipfile.lock"
+  - "*.min.js"
+  - "*.min.css"
+  - "*-min.js"
+  - "*-min.css"
+  - "bundle.js"
+  - "*.bundle.js"
+  - "*.bundle.css"
+  - "*.min.map"
+  - "*.js.map"
+  - "*.css.map"
+  - "*.d.ts.map"
+
+# Extensions de fichiers importantes à toujours inclure
+important_extensions:
+  # Code source
+  - .py
+  - .js
+  - .ts
+  - .jsx
+  - .tsx
+  - .java
+  - .go
+  - .rs
+  - .cpp
+  - .c
+  - .h
+  - .hpp
+  - .cs
+  - .vb
+  - .fs
+  - .fsx
+  - .php
+  - .rb
+  - .swift
+  - .kt
+  - .kts
+  - .scala
+  - .clj
+  - .elm
+  - .hs
+  - .ml
+  - .r
+  - .jl
+  - .dart
+  - .lua
+  - .pl
+  - .pm
+  
+  # Configuration
+  - .json
+  - .yaml
+  - .yml
+  - .toml
+  - .ini
+  - .cfg
+  - .conf
+  - .env
+  - .properties
+  - .config
+  
+  # Documentation
+  - .md
+  - .rst
+  - .txt
+  - .adoc
+  - .org
+  
+  # Web
+  - .html
+  - .htm
+  - .css
+  - .scss
+  - .sass
+  - .less
+  - .vue
+  - .svelte
+  - .astro
+  
+  # Scripts
+  - .sh
+  - .bash
+  - .zsh
+  - .fish
+  - .ps1
+  - .bat
+  - .cmd
+  
+  # Données
+  - .sql
+  - .csv
+  - .xml
+  - .graphql
+  - .gql
+  
+  # Markup
+  - .tex
+  - .latex
+
+# Types de projets et leurs configurations spécifiques
+project_types:
+  python:
+    additional_exclude_dirs:
+      - __pycache__
+      - .pytest_cache
+      - .mypy_cache
+      - .tox
+      - build
+      - dist
+      - "*.egg-info"
+    important_files:
+      - "pyproject.toml"
+      - "setup.py"
+      - "requirements.txt"
+      - "requirements-dev.txt"
+      - "Pipfile"
+      - "poetry.lock"
+      - "setup.cfg"
+      - "tox.ini"
+      - "pytest.ini"
+      - ".flake8"
+      - "mypy.ini"
+  
+  javascript:
+    additional_exclude_dirs:
+      - node_modules
+      - .next
+      - .nuxt
+      - dist
+      - build
+      - coverage
+    important_files:
+      - "package.json"
+      - "package-lock.json"
+      - "yarn.lock"
+      - "webpack.config.js"
+      - "vite.config.js"
+      - "rollup.config.js"
+      - "tsconfig.json"
+      - ".eslintrc.js"
+      - ".eslintrc.json"
+      - ".babelrc"
+      - ".prettierrc"
+      - "jest.config.js"
+  
+  react:
+    additional_exclude_dirs:
+      - node_modules
+      - build
+      - .next
+      - out
+      - coverage
+    important_files:
+      - "package.json"
+      - "tsconfig.json"
+      - ".eslintrc.js"
+      - "next.config.js"
+      - "webpack.config.js"
+      - "vite.config.js"
+      - ".env.local"
+      - ".env.example"
+  
+  csharp:
+    additional_exclude_dirs:
+      - bin
+      - obj
+      - packages
+      - TestResults
+      - .vs
+      - .vscode
+    additional_exclude_extensions:
+      - .dll
+      - .exe
+      - .pdb
+      - .cache
+      - .user
+    important_files:
+      - "*.sln"
+      - "*.csproj"
+      - "*.vbproj"
+      - "*.fsproj"
+      - "packages.config"
+      - "appsettings.json"
+      - "appsettings.*.json"
+      - "web.config"
+      - "app.config"
+      - "Directory.Build.props"
+      - "Directory.Build.targets"
+      - "nuget.config"
+  
+  java:
+    additional_exclude_dirs:
+      - target
+      - build
+      - .gradle
+      - out
+      - .m2
+    important_files:
+      - "pom.xml"
+      - "build.gradle"
+      - "build.gradle.kts"
+      - "settings.gradle"
+      - "gradle.properties"
+      - "gradlew"
+      - "gradlew.bat"
+      - "application.properties"
+      - "application.yml"
+  
+  kotlin:
+    additional_exclude_dirs:
+      - build
+      - .gradle
+      - out
+    important_files:
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle.properties"
+  
+  php:
+    additional_exclude_dirs:
+      - vendor
+      - storage
+      - bootstrap/cache
+    important_files:
+      - "composer.json"
+      - "composer.lock"
+      - ".env"
+      - ".env.example"
+      - "artisan"
+      - "wp-config.php"
+  
+  ruby:
+    additional_exclude_dirs:
+      - vendor
+      - .bundle
+      - tmp
+      - log
+    important_files:
+      - "Gemfile"
+      - "Gemfile.lock"
+      - "Rakefile"
+      - "config.ru"
+      - ".ruby-version"
+  
+  go:
+    additional_exclude_dirs:
+      - vendor
+      - bin
+    important_files:
+      - "go.mod"
+      - "go.sum"
+      - "Makefile"
+      - "Dockerfile"
+  
+  rust:
+    additional_exclude_dirs:
+      - target
+      - .cargo
+    important_files:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "build.rs"
+  
+  swift:
+    additional_exclude_dirs:
+      - .build
+      - build
+      - DerivedData
+      - xcuserdata
+    important_files:
+      - "Package.swift"
+      - "*.xcodeproj"
+      - "*.xcworkspace"
+      - "Podfile"
+      - "Podfile.lock"
+  
+  flutter:
+    additional_exclude_dirs:
+      - build
+      - .dart_tool
+      - .flutter-plugins
+      - .flutter-plugins-dependencies
+      - ios/build
+      - android/build
+    important_files:
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "analysis_options.yaml"
+  
+  docker:
+    important_files:
+      - "Dockerfile"
+      - "docker-compose.yml"
+      - "docker-compose.yaml"
+      - ".dockerignore"
+  
+  terraform:
+    additional_exclude_dirs:
+      - .terraform
+      - terraform.tfstate.d
+    important_files:
+      - "*.tf"
+      - "*.tfvars"
+      - "terraform.tfstate"
+      - "terraform.tfstate.backup" 
