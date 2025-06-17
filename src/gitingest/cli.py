@@ -24,6 +24,262 @@ import json
 import glob
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+def _parse_size_string(size_str: str) -> int:
+    """
+    Convertit une chaîne de taille (ex: '1MB', '500KB', '2GB') en octets.
+    
+    Args:
+        size_str: Chaîne de taille (ex: '1MB', '500KB', '2GB')
+        
+    Returns:
+        int: Taille en octets
+        
+    Raises:
+        ValueError: Si le format n'est pas reconnu
+    """
+    size_str = size_str.upper().strip()
+    
+    # Multipliers pour les unités
+    units = {
+        'B': 1,
+        'KB': 1024,
+        'MB': 1024 ** 2,
+        'GB': 1024 ** 3,
+        'TB': 1024 ** 4,
+    }
+    
+    # Extraire le nombre et l'unité
+    import re
+    match = re.match(r'^(\d+(?:\.\d+)?)\s*([KMGT]?B?)$', size_str)
+    if not match:
+        raise ValueError(f"Format de taille invalide : {size_str}. Utilisez des formats comme '1MB', '500KB', '2GB'")
+    
+    number = float(match.group(1))
+    unit = match.group(2) or 'B'
+    
+    if unit not in units:
+        raise ValueError(f"Unité non reconnue : {unit}. Unités supportées : {', '.join(units.keys())}")
+    
+    return int(number * units[unit])
+
+
+def _split_content_by_size(content: str, max_size: int, format_type: str = "txt") -> list:
+    """
+    Divise le contenu en plusieurs parties selon la taille maximale.
+    
+    Args:
+        content: Contenu à diviser
+        max_size: Taille maximale par partie en octets
+        format_type: Type de format ("txt" ou "jsonl")
+        
+    Returns:
+        list: Liste des parties de contenu
+    """
+    content_bytes = content.encode('utf-8')
+    if len(content_bytes) <= max_size:
+        return [content]
+    
+    parts = []
+    current_pos = 0
+    
+    while current_pos < len(content_bytes):
+        # Prendre un chunk de la taille max
+        chunk_end = min(current_pos + max_size, len(content_bytes))
+        chunk_bytes = content_bytes[current_pos:chunk_end]
+        
+        # Essayer de couper à une ligne complète pour éviter de couper au milieu
+        if chunk_end < len(content_bytes):
+            # Chercher le dernier saut de ligne dans les 500 derniers octets
+            search_start = max(0, len(chunk_bytes) - 500)
+            last_newline = chunk_bytes.rfind(b'\n', search_start)
+            
+            if last_newline != -1:
+                # Couper au dernier saut de ligne
+                chunk_bytes = chunk_bytes[:last_newline + 1]
+                chunk_end = current_pos + len(chunk_bytes)
+        
+        try:
+            chunk_content = chunk_bytes.decode('utf-8')
+            parts.append(chunk_content)
+        except UnicodeDecodeError:
+            # En cas d'erreur de décodage, prendre une taille plus petite
+            chunk_bytes = chunk_bytes[:-10]  # Retirer 10 octets
+            chunk_content = chunk_bytes.decode('utf-8', errors='ignore')
+            parts.append(chunk_content)
+            chunk_end = current_pos + len(chunk_bytes)
+        
+        current_pos = chunk_end
+    
+    return parts
+
+
+def _truncate_content_intelligently(files: list, max_size: int, format_type: str = "txt") -> list:
+    """
+    Tronque intelligemment le contenu en gardant les fichiers les plus importants.
+    
+    Args:
+        files: Liste des fichiers à traiter
+        max_size: Taille maximale totale en octets
+        format_type: Type de format ("txt" ou "jsonl")
+        
+    Returns:
+        list: Liste des fichiers filtrés et éventuellement tronqués
+    """
+    # Trier par importance (HIGH > MEDIUM > LOW) puis par taille (petits d'abord)
+    from gitingest.schemas.schemas import FileImportance
+    
+    importance_order = {
+        FileImportance.HIGH: 1,
+        FileImportance.MEDIUM: 2,
+        FileImportance.LOW: 3
+    }
+    
+    sorted_files = sorted(files, key=lambda f: (importance_order.get(f.importance, 4), f.size))
+    
+    result_files = []
+    current_size = 0
+    
+    # Estimation de l'overhead du format (headers, métadonnées, etc.)
+    overhead = 1000 if format_type == "txt" else 500
+    
+    for file_node in sorted_files:
+        # Estimer la taille que ce fichier ajoutera au format final
+        content = file_node.extra.get('content', '')
+        if format_type == "txt":
+            # Format TXT : headers + contenu + code blocks
+            estimated_size = len(f"### Fichier: {file_node.path}\n") + len(content) + 100
+        else:
+            # Format JSONL : JSON structure + contenu
+            import json
+            temp_data = {
+                "type": "file",
+                "path": file_node.path,
+                "content": content
+            }
+            estimated_size = len(json.dumps(temp_data, ensure_ascii=False)) + 1
+        
+        if current_size + estimated_size + overhead <= max_size:
+            result_files.append(file_node)
+            current_size += estimated_size
+        else:
+            # Essayer de tronquer le contenu du fichier
+            remaining_space = max_size - current_size - overhead - 200  # Marge pour "[TRONQUÉ]"
+            
+            if remaining_space > 500:  # Assez d'espace pour un contenu utile
+                # Tronquer le contenu
+                truncated_content = content[:remaining_space//2] + "\n... [CONTENU TRONQUÉ POUR LIMITE DE TAILLE] ..."
+                file_node.extra['content'] = truncated_content
+                file_node.extra['truncated_size'] = True
+                result_files.append(file_node)
+                break
+            else:
+                # Plus assez d'espace, arrêter ici
+                break
+    
+    return result_files
+
+
+def _generate_txt_content(project_name: str, model: str, files: list) -> str:
+    """
+    Génère le contenu au format TXT optimisé pour l'IA.
+    
+    Args:
+        project_name: Nom du projet
+        model: Modèle utilisé
+        files: Liste des fichiers à inclure
+        
+    Returns:
+        str: Contenu formaté en TXT
+    """
+    import time
+    
+    content = []
+    
+    # En-tête du projet
+    content.append(f"# Analyse du projet : {project_name}")
+    content.append(f"Généré le : {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    content.append(f"Modèle utilisé : {model}")
+    content.append(f"Nombre de fichiers : {len(files)}")
+    content.append("")
+    
+    # Structure du projet
+    content.append("## Structure du projet")
+    content.append("")
+    for file_node in files:
+        content.append(f"- {file_node.path} ({file_node.file_type.name}, {file_node.importance.name})")
+    content.append("")
+    
+    # Contenu des fichiers
+    content.append("## Contenu des fichiers")
+    content.append("")
+    for file_node in files:
+        content.append(f"### Fichier: {file_node.path}")
+        content.append(f"**Type:** {file_node.file_type.name} | **Importance:** {file_node.importance.name} | **Langage:** {file_node.language} | **Taille:** {file_node.size} octets")
+        
+        # Indicateurs de troncature
+        if file_node.extra.get('truncated', False):
+            content.append(" | **⚠️ TRONQUÉ (FICHIER)**")
+        if file_node.extra.get('truncated_size', False):
+            content.append(" | **⚠️ TRONQUÉ (TAILLE SORTIE)**")
+        content.append("")
+        
+        # Déterminer le type de bloc de code
+        code_lang = file_node.language or "text"
+        content.append(f"```{code_lang}")
+        content.append(file_node.extra.get('content', ''))
+        content.append("```")
+        content.append("")
+        content.append("---")
+        content.append("")
+    
+    return "\n".join(content)
+
+
+def _generate_jsonl_content(project_name: str, model: str, files: list) -> str:
+    """
+    Génère le contenu au format JSONL.
+    
+    Args:
+        project_name: Nom du projet
+        model: Modèle utilisé
+        files: Liste des fichiers à inclure
+        
+    Returns:
+        str: Contenu formaté en JSONL
+    """
+    import json
+    import time
+    
+    lines = []
+    
+    # Métadonnées du projet
+    metadata = {
+        "type": "metadata",
+        "project_name": project_name,
+        "total_files": len(files),
+        "model": model,
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+    }
+    lines.append(json.dumps(metadata, ensure_ascii=False))
+    
+    # Fichiers
+    for file_node in files:
+        file_data = {
+            "type": "file",
+            "path": file_node.path,
+            "file_type": file_node.file_type.name,
+            "importance": file_node.importance.name,
+            "size": file_node.size,
+            "language": file_node.language,
+            "content": file_node.extra.get('content', ''),
+            "truncated": file_node.extra.get('truncated', False),
+            "truncated_size": file_node.extra.get('truncated_size', False)
+        }
+        lines.append(json.dumps(file_data, ensure_ascii=False))
+    
+    return "\n".join(lines)
+
+
 def create_cli():
     @click.group()
     def cli():
@@ -38,16 +294,19 @@ def create_cli():
     @ai.command()
     @click.argument("directories", nargs=-1, required=True)
     @click.option("--model", "-m", default="gpt-4", help="Modèle LLM à utiliser pour l'optimisation")
+    @click.option("--format", "-f", default="txt", type=click.Choice(["txt", "jsonl"]), help="Format de sortie (txt ou jsonl)")
     @click.option("--output-dir", "-o", default=".", help="Répertoire de sortie pour les fichiers digest")
     @click.option("--include-ext", "-i", multiple=True, help="Extensions à inclure (ex: .py, .js)")
     @click.option("--exclude-ext", "-e", multiple=True, help="Extensions à exclure (ex: .log, .tmp)")
     @click.option("--exclude-dirs", "-d", multiple=True, help="Répertoires à exclure (ex: node_modules, .git)")
     @click.option("--exclude-files", "-f", multiple=True, help="Fichiers à exclure (ex: *.log, temp*)")
     @click.option("--max-files", default=None, type=int, help="Nombre maximal de fichiers par projet")
+    @click.option("--max-output-size", default=None, type=str, help="Taille maximale du fichier de sortie (ex: 1MB, 500KB, 2GB)")
+    @click.option("--split-mode", default="auto", type=click.Choice(["auto", "split", "truncate"]), help="Mode de gestion de la limite de taille : auto=divise si nécessaire, split=toujours diviser, truncate=tronquer intelligemment")
     @click.option("--dry-run", is_flag=True, help="Simuler l'extraction sans écrire de fichiers")
     @click.option("--verbose", "-v", is_flag=True, help="Affichage détaillé")
     @click.option("--parallel", "-p", default=4, type=int, help="Nombre de projets à traiter en parallèle")
-    def batch(directories, model, output_dir, include_ext, exclude_ext, exclude_dirs, exclude_files, max_files, dry_run, verbose, parallel):
+    def batch(directories, model, format, output_dir, include_ext, exclude_ext, exclude_dirs, exclude_files, max_files, max_output_size, split_mode, dry_run, verbose, parallel):
         """
         Traite plusieurs répertoires en parallèle et génère un fichier digest par projet.
         
@@ -112,11 +371,21 @@ def create_cli():
             click.echo(f"Répertoires exclus : {', '.join(sorted(exclude_dirs_set))}")
             click.echo(f"Fichiers exclus : {', '.join(sorted(exclude_files_set))}")
         
+        # Conversion de la taille maximale de sortie
+        max_output_bytes = None
+        if max_output_size:
+            max_output_bytes = _parse_size_string(max_output_size)
+            if verbose:
+                click.echo(f"Taille maximale de sortie : {max_output_size} ({max_output_bytes:,} octets)")
+                click.echo(f"Mode de division : {split_mode}")
+        
         def process_directory(directory):
             """Traite un répertoire et retourne les résultats"""
             try:
                 project_name = directory.name
-                output_file = output_path / f"{project_name}.jsonl"
+                # Choisir l'extension selon le format
+                extension = ".txt" if format == "txt" else ".jsonl"
+                output_file = output_path / f"{project_name}{extension}"
                 
                 if verbose:
                     click.echo(f"Traitement de {directory} -> {output_file}")
@@ -132,6 +401,10 @@ def create_cli():
                     exclude_dirs_set, 
                     exclude_files_set
                 )
+                
+                # Vérifier qu'il y a encore des fichiers après filtrage
+                if filtered_node is None:
+                    raise ValueError(f"Aucun fichier trouvé après filtrage pour le projet {project_name}")
                 
                 # Extraire le contexte
                 repo_context = extract_repo_context(
@@ -159,48 +432,67 @@ def create_cli():
                         except (UnicodeDecodeError, IOError):
                             file_node.extra['content'] = "[FICHIER BINAIRE OU ILLISIBLE]"
                 
+                # Appliquer la limitation de taille de sortie si spécifiée
+                files_to_process = repo_context.files
+                output_files = []
+                
+                if max_output_bytes and split_mode == "truncate":
+                    # Mode troncature intelligente
+                    files_to_process = _truncate_content_intelligently(repo_context.files, max_output_bytes, format)
+                    if verbose:
+                        click.echo(f"Troncature intelligente : {len(files_to_process)}/{len(repo_context.files)} fichiers conservés")
+                
                 if not dry_run:
-                    # Écrire au format JSONL
-                    with open(output_file, 'w', encoding='utf-8') as f:
-                        # Métadonnées du projet
-                        metadata = {
-                            "type": "metadata",
-                            "project_name": project_name,
-                            "total_files": len(repo_context.files),
-                            "model": model,
-                            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-                        }
-                        f.write(json.dumps(metadata, ensure_ascii=False) + '\n')
+                    # Générer le contenu selon le format
+                    if format == "txt":
+                        content = _generate_txt_content(project_name, model, files_to_process)
+                    else:
+                        content = _generate_jsonl_content(project_name, model, files_to_process)
+                    
+                    # Gérer la division selon la taille et le mode
+                    if max_output_bytes and (split_mode == "split" or (split_mode == "auto" and len(content.encode('utf-8')) > max_output_bytes)):
+                        # Diviser en plusieurs fichiers
+                        content_parts = _split_content_by_size(content, max_output_bytes, format)
                         
-                        # Fichiers
-                        for file_node in repo_context.files:
-                            file_data = {
-                                "type": "file",
-                                "path": file_node.path,
-                                "file_type": file_node.file_type.name,
-                                "importance": file_node.importance.name,
-                                "size": file_node.size,
-                                "language": file_node.language,
-                                "content": file_node.extra.get('content', ''),
-                                "truncated": file_node.extra.get('truncated', False)
-                            }
-                            f.write(json.dumps(file_data, ensure_ascii=False) + '\n')
+                        for i, part in enumerate(content_parts, 1):
+                            part_extension = ".txt" if format == "txt" else ".jsonl"
+                            if len(content_parts) > 1:
+                                part_file = output_path / f"{project_name}_part{i}{part_extension}"
+                            else:
+                                part_file = output_path / f"{project_name}{part_extension}"
+                            
+                            with open(part_file, 'w', encoding='utf-8') as f:
+                                f.write(part)
+                            
+                            output_files.append(str(part_file))
+                        
+                        if verbose and len(content_parts) > 1:
+                            click.echo(f"Fichier divisé en {len(content_parts)} parties pour respecter la limite de taille")
+                    else:
+                        # Fichier unique
+                        with open(output_file, 'w', encoding='utf-8') as f:
+                            f.write(content)
+                        output_files.append(str(output_file))
                 
                 return {
                     'project': project_name,
-                    'output_file': str(output_file),
-                    'files_count': len(repo_context.files),
+                    'output_files': output_files if output_files else [str(output_file)],
+                    'files_count': len(files_to_process),
+                    'original_files_count': len(repo_context.files),
                     'success': True,
-                    'error': None
+                    'error': None,
+                    'truncated': len(files_to_process) < len(repo_context.files)
                 }
                 
             except Exception as e:
                 return {
                     'project': directory.name,
-                    'output_file': None,
+                    'output_files': [],
                     'files_count': 0,
+                    'original_files_count': 0,
                     'success': False,
-                    'error': str(e)
+                    'error': str(e),
+                    'truncated': False
                 }
         
         # Traitement en parallèle
@@ -231,9 +523,22 @@ def create_cli():
         click.echo(f"Projets échoués : {len(failed)}")
         
         if successful:
-            click.echo("\n=== FICHIERS GÉNÉRÉS ===")
+            click.echo(f"\n=== FICHIERS GÉNÉRÉS ===")
             for result in successful:
-                click.echo(f"  {result['project']}: {result['output_file']} ({result['files_count']} fichiers)")
+                output_info = []
+                for output_file in result['output_files']:
+                    output_info.append(Path(output_file).name)
+                
+                files_info = f"{result['files_count']} fichiers"
+                if result['truncated']:
+                    files_info += f" (sur {result['original_files_count']} total - tronqué)"
+                
+                if len(result['output_files']) > 1:
+                    click.echo(f"  {result['project']}: {len(result['output_files'])} parties ({files_info})")
+                    for output_file in output_info:
+                        click.echo(f"    - {output_file}")
+                else:
+                    click.echo(f"  {result['project']}: {output_info[0]} ({files_info})")
         
         if failed:
             click.echo("\n=== ERREURS ===")
@@ -242,6 +547,10 @@ def create_cli():
         
         if not dry_run:
             click.echo(f"\nFichiers digest créés dans : {output_path}")
+            if format == "txt":
+                click.echo("Format: TXT optimisé pour l'IA (prêt pour copier-coller)")
+            else:
+                click.echo("Format: JSONL structuré")
         else:
             click.echo(f"\n[DRY RUN] Aucun fichier n'a été créé.")
 
@@ -275,13 +584,15 @@ def create_cli():
                 if fnmatch.fnmatch(filename, pattern):
                     return None
             
-            # Vérifier les extensions
+            # Vérifier les extensions (normaliser pour inclure le point)
             if include_ext:
-                if extension not in include_ext:
+                normalized_include = {ext if ext.startswith('.') else f'.{ext}' for ext in include_ext}
+                if extension not in normalized_include:
                     return None
             
             if exclude_ext:
-                if extension in exclude_ext:
+                normalized_exclude = {ext if ext.startswith('.') else f'.{ext}' for ext in exclude_ext}
+                if extension in normalized_exclude:
                     return None
             
             return node
@@ -386,6 +697,11 @@ def create_cli():
                 exclude_dirs_set, 
                 exclude_files_set
             )
+            
+            # Vérifier qu'il y a encore des fichiers après filtrage
+            if filtered_node is None:
+                click.echo(f"Aucun fichier trouvé après filtrage pour {root_path.name}", err=True)
+                return
             
             click.echo(f"[DEBUG] Fin scan arborescence en {time.time() - start_scan:.2f}s")
             
