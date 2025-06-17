@@ -1,0 +1,71 @@
+# Analyse du projet : test_project
+Généré le : 2025-06-11 16:04:06
+Modèle utilisé : gpt-4
+Nombre de fichiers : 4
+
+## Structure du projet
+
+- /private/var/folders/0q/yrq6vtpd1mnbf_v81xymq0fr0000gp/T/tmpw8bu6pmg/test1/test_project/README.md (DOCUMENTATION, MEDIUM)
+- /private/var/folders/0q/yrq6vtpd1mnbf_v81xymq0fr0000gp/T/tmpw8bu6pmg/test1/test_project/module_2.py (SOURCE, MEDIUM)
+- /private/var/folders/0q/yrq6vtpd1mnbf_v81xymq0fr0000gp/T/tmpw8bu6pmg/test1/test_project/module_0.py (SOURCE, MEDIUM)
+- /private/var/folders/0q/yrq6vtpd1mnbf_v81xymq0fr0000gp/T/tmpw8bu6pmg/test1/test_project/module_1.py (SOURCE, MEDIUM)
+
+## Contenu des fichiers
+
+### Fichier: /private/var/folders/0q/yrq6vtpd1mnbf_v81xymq0fr0000gp/T/tmpw8bu6pmg/test1/test_project/README.md
+**Type:** DOCUMENTATION | **Importance:** MEDIUM | **Langage:** md | **Taille:** 159 octets
+
+```md
+# Projet de Test
+
+Ce projet contient 3 modules Python pour tester gitingest.
+
+## Structure
+- 3 fichiers Python
+- Taille approximative par fichier : 500 octets
+
+```
+
+---
+
+### Fichier: /private/var/folders/0q/yrq6vtpd1mnbf_v81xymq0fr0000gp/T/tmpw8bu6pmg/test1/test_project/module_2.py
+**Type:** SOURCE | **Importance:** MEDIUM | **Langage:** py | **Taille:** 606 octets
+
+```py
+# Module 2
+def function_2():
+    '''Fonction de test numéro 2'''
+    print("Hello from module 2")
+    
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+---
+
+### Fichier: /private/var/folders/0q/yrq6vtpd1mnbf_v81xymq0fr0000gp/T/tmpw8bu6pmg/test1/test_project/module_0.py
+**Type:** SOURCE | **Importance:** MEDIUM | **Langage:** py | **Taille:** 606 octets
+
+```py
+# Module 0
+def function_0():
+    '''Fonction de test numéro 0'''
+    print("Hello from module 0")
+    
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+---
+
+### Fichier: /private/var/folders/0q/yrq6vtpd1mnbf_v81xymq0fr0000gp/T/tmpw8bu6pmg/test1/test_project/module_1.py
+**Type:** SOURCE | **Importance:** MEDIUM | **Langage:** py | **Taille:** 606 octets
+
+```py
+# Module 1
+def function_1():
+    '''Fonction de test numéro 1'''
+    print("Hello from module 1")
+    
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+---
