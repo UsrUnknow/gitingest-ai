@@ -26,9 +26,17 @@ show_help() {
     echo "  -p, --parallel N           Nombre de processus parallèles (défaut: 4)"
     echo "  -v, --verbose              Mode verbeux"
     echo "  -d, --dry-run              Simulation sans traitement"
+    echo "  -f, --format FORMAT        Format de sortie (txt ou jsonl, défaut: txt)"
     echo "  --include-ext EXTS         Extensions à inclure (ex: .py,.js,.ts)"
     echo "  --exclude-ext EXTS         Extensions à exclure (ex: .log,.tmp)"
     echo "  --exclude-dirs DIRS        Répertoires à exclure (ex: node_modules,dist)"
+    echo "  --max-output-size SIZE     Taille maximale de sortie (ex: 100MB, 1GB)"
+    echo "  --split-mode MODE          Mode de division (auto|split|truncate)"
+    echo ""
+    echo "Modes de gestion de taille:"
+    echo "  auto        Divise automatiquement si nécessaire (défaut)"
+    echo "  split       Force la division en plusieurs fichiers"
+    echo "  truncate    Tronque intelligemment le contenu"
     echo ""
     echo "Raccourcis langages supportés:"
     echo "  py          Python (.py, .pyi, .pyx)"
@@ -142,15 +150,18 @@ map_languages() {
 }
 
 # Variables par défaut
-MODEL=""
+MODEL="batch"  # Utilise le mode batch par défaut
 LANGUAGES=""
 OUTPUT_DIR="./output"
 PARALLEL=4
 VERBOSE=false
 DRY_RUN=false
+FORMAT="txt"  # Format par défaut TXT
 INCLUDE_EXT=""
 EXCLUDE_EXT=""
 EXCLUDE_DIRS=""
+MAX_OUTPUT_SIZE=""
+SPLIT_MODE="auto"
 DIRECTORIES=()
 
 # Parsing des arguments
@@ -184,6 +195,10 @@ while [[ $# -gt 0 ]]; do
             DRY_RUN=true
             shift
             ;;
+        -f|--format)
+            FORMAT="$2"
+            shift 2
+            ;;
         --include-ext)
             INCLUDE_EXT="$2"
             shift 2
@@ -194,6 +209,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         --exclude-dirs)
             EXCLUDE_DIRS="$2"
+            shift 2
+            ;;
+        --max-output-size)
+            MAX_OUTPUT_SIZE="$2"
+            shift 2
+            ;;
+        --split-mode)
+            SPLIT_MODE="$2"
             shift 2
             ;;
         -*)
@@ -236,10 +259,12 @@ if [ -n "$LANGUAGES" ]; then
 fi
 
 # Construire la commande gitingest
-if [ -n "$MODEL" ]; then
+if [ -n "$MODEL" ] && [ "$MODEL" != "batch" ]; then
     CMD="gitingest ai $MODEL"
 else
     CMD="gitingest ai batch"
+    # Ajouter le format pour le mode batch
+    CMD="$CMD --format $FORMAT"
 fi
 
 # Ajouter les options
@@ -255,7 +280,9 @@ if [ -n "$EXCLUDE_DIRS" ]; then
     CMD="$CMD --exclude-dirs $EXCLUDE_DIRS"
 fi
 
-CMD="$CMD --parallel $PARALLEL"
+if [ "$MODEL" == "batch" ] || [ -z "$MODEL" ]; then
+    CMD="$CMD --parallel $PARALLEL"
+fi
 
 if [ "$VERBOSE" = true ]; then
     CMD="$CMD --verbose"
@@ -263,6 +290,15 @@ fi
 
 if [ "$DRY_RUN" = true ]; then
     CMD="$CMD --dry-run"
+fi
+
+# Ajouter les nouvelles options de limitation de taille
+if [ -n "$MAX_OUTPUT_SIZE" ]; then
+    CMD="$CMD --max-output-size $MAX_OUTPUT_SIZE"
+fi
+
+if [ "$SPLIT_MODE" != "auto" ]; then
+    CMD="$CMD --split-mode $SPLIT_MODE"
 fi
 
 # Ajouter les répertoires
@@ -273,9 +309,12 @@ done
 # Afficher le résumé
 echo -e "${BLUE}=== Configuration gitingest ===${NC}"
 echo -e "Modèle IA: ${GREEN}${MODEL:-"batch (parallèle)"}${NC}"
+echo -e "Format: ${GREEN}${FORMAT}${NC}"
 echo -e "Répertoires: ${GREEN}${DIRECTORIES[*]}${NC}"
 echo -e "Sortie: ${GREEN}${OUTPUT_DIR}${NC}"
-echo -e "Processus parallèles: ${GREEN}${PARALLEL}${NC}"
+if [ "$MODEL" == "batch" ] || [ -z "$MODEL" ]; then
+    echo -e "Processus parallèles: ${GREEN}${PARALLEL}${NC}"
+fi
 
 if [ -n "$LANGUAGES" ]; then
     echo -e "Langages: ${GREEN}${LANGUAGES}${NC}"
@@ -291,6 +330,14 @@ fi
 
 if [ -n "$EXCLUDE_DIRS" ]; then
     echo -e "Répertoires exclus: ${YELLOW}${EXCLUDE_DIRS}${NC}"
+fi
+
+if [ -n "$MAX_OUTPUT_SIZE" ]; then
+    echo -e "Taille max sortie: ${YELLOW}${MAX_OUTPUT_SIZE}${NC}"
+fi
+
+if [ "$SPLIT_MODE" != "auto" ]; then
+    echo -e "Mode division: ${YELLOW}${SPLIT_MODE}${NC}"
 fi
 
 echo ""
@@ -313,8 +360,17 @@ else
     # Lister les fichiers générés
     echo ""
     echo -e "${BLUE}Fichiers générés:${NC}"
-    find . -name "*.jsonl" -type f -exec basename {} \; | sort | while read -r file; do
-        size=$(du -h "$file" | cut -f1)
-        echo -e "  ${GREEN}${file}${NC} (${YELLOW}${size}${NC})"
-    done
+    
+    # Rechercher selon le format utilisé
+    if [ "$FORMAT" == "txt" ]; then
+        find . -name "*.txt" -type f -exec basename {} \; | sort | while read -r file; do
+            size=$(du -h "$file" | cut -f1)
+            echo -e "  ${GREEN}${file}${NC} (${YELLOW}${size}${NC})"
+        done
+    else
+        find . -name "*.jsonl" -type f -exec basename {} \; | sort | while read -r file; do
+            size=$(du -h "$file" | cut -f1)
+            echo -e "  ${GREEN}${file}${NC} (${YELLOW}${size}${NC})"
+        done
+    fi
 fi 
